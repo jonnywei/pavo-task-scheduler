@@ -28,6 +28,17 @@ public class SimpleRemotingClient extends AbstractRemoting implements RemotingCl
     }
 
     @Override
+    public RemotingCommand invokeASync(String addr, RemotingCommand request, long timeoutMills, AysncCallback callback) {
+        final Channel channel = getAndCreateChannel(addr);
+        if(channel != null &&  channel.isConnected()){
+
+        }else{
+
+        }
+        return null;
+    }
+
+    @Override
     public void registerProcessor(RemotingProcessor processor, ExecutorService executor) {
 
     }

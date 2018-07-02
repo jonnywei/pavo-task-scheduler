@@ -8,10 +8,17 @@ public interface RemotingClient {
     void start();
 
 
-    RemotingCommand invokeSync(String addr, RemotingCommand request, final long timeMills);
+    RemotingCommand invokeSync(String addr, RemotingCommand request, final long timeoutMills);
 
-
-    RemotingCommand invokeASync(String addr, RemotingCommand request, final long timeMills);
+    /**
+     * 异步调用
+     * @param addr
+     * @param request
+     * @param timeoutMills
+     * @param callback
+     * @return
+     */
+    RemotingCommand invokeASync(String addr, RemotingCommand request, final long timeoutMills, AysncCallback callback);
 
 
     void registerProcessor(final RemotingProcessor processor, ExecutorService executor);
