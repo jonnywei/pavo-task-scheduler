@@ -38,6 +38,16 @@ public class RemotingCommand implements Serializable {
         public int code() {
             return this.code;
         }
+
+        public static RemotingCommandType  valueOf(int code) {
+            if(code == RemotingCommandType.REQUEST.code()){
+                return RemotingCommandType.REQUEST;
+            }else if( code  == RemotingCommandType.RESPONSE.code()){
+                return RemotingCommandType.RESPONSE;
+            }
+            throw  new IllegalArgumentException("ERROR RemotingCommandType code " + code);
+
+        }
     }
 
     public enum RequestCode{
@@ -104,4 +114,6 @@ public class RemotingCommand implements Serializable {
     public void setId(int id) {
         this.id = id;
     }
+
+
 }

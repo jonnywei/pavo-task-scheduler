@@ -9,9 +9,16 @@ public class SimpleRemotingClient extends AbstractRemoting implements RemotingCl
 
     private ConcurrentHashMap<String, Channel> channelTables = new ConcurrentHashMap<>();
 
+
+    private String addr;
+
+    public SimpleRemotingClient(String addr) {
+        this.addr = addr;
+    }
+
     @Override
     public void start() {
-
+        SimpleChannelRouter.remotingStart(addr,this);
     }
 
     @Override
@@ -28,10 +35,11 @@ public class SimpleRemotingClient extends AbstractRemoting implements RemotingCl
     }
 
     @Override
-    public RemotingCommand invokeASync(String addr, RemotingCommand request, long timeoutMills, AysncCallback callback) {
+    public RemotingCommand invokeASync(String addr, RemotingCommand request, long timeoutMills, AsyncCallback callback) {
         final Channel channel = getAndCreateChannel(addr);
         if(channel != null &&  channel.isConnected()){
-
+            //abstract remoting impl
+            return this.invokeAsyncImpl(channel, request, timeoutMills, callback);
         }else{
 
         }
@@ -72,11 +80,11 @@ public class SimpleRemotingClient extends AbstractRemoting implements RemotingCl
     }
 
     private Channel connect(String  addr){
-        SimpleChannel clientChannel = new SimpleChannel(addr);
-        SimpleChannel severChannel  = new SimpleChannel(addr);
+        SimpleChannel clientChannel = new SimpleChannel(this.addr, addr); //local remote
+        SimpleChannel severChannel  = new SimpleChannel(addr, this.addr); // remote local
         SimpleChannelRouter.makeTunnel(clientChannel,severChannel);
         SimpleChannelRouter.addRemoting(clientChannel, this);
-        AbstractRemoting serverRemoting = SimpleChannelRouter.getServer(addr);
+        AbstractRemoting serverRemoting = SimpleChannelRouter.getRemoting(addr);
         SimpleChannelRouter.addRemoting(severChannel, serverRemoting);
         return clientChannel;
     }

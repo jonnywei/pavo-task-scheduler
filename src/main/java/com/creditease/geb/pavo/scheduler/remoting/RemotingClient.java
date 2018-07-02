@@ -18,7 +18,7 @@ public interface RemotingClient {
      * @param callback
      * @return
      */
-    RemotingCommand invokeASync(String addr, RemotingCommand request, final long timeoutMills, AysncCallback callback);
+    RemotingCommand invokeASync(String addr, RemotingCommand request, final long timeoutMills, AsyncCallback callback);
 
 
     void registerProcessor(final RemotingProcessor processor, ExecutorService executor);

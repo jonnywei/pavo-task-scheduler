@@ -19,7 +19,7 @@ public class SimpleRemotingServer extends AbstractRemoting implements RemotingSe
     @Override
     public void start() {
         logger.debug("remoting server start. addr ={}" ,addr );
-        SimpleChannelRouter.serverStart(addr,this);
+        SimpleChannelRouter.remotingStart(addr,this);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class SimpleRemotingServer extends AbstractRemoting implements RemotingSe
 
     @Override
     public void shutdown() {
-        SimpleChannelRouter.serverShutdown(this.addr);
+        SimpleChannelRouter.remotingShutdown(this.addr);
 
     }
 

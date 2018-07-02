@@ -32,7 +32,7 @@ public abstract class AbstractClientNode extends AbstractNode {
      */
     @Override
     protected void beforeRemotingStart() {
-        this.remotingClient = new SimpleRemotingClient();
+        this.remotingClient = new SimpleRemotingClient(getNodeInfo().getAddress());
         this.heartBeatMonitor = new HeartBeatMonitor(this.appContext,this.remotingClient);
     }
 

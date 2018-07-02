@@ -1,20 +1,23 @@
 package com.creditease.geb.pavo.scheduler.remoting.simple;
 
-import com.creditease.geb.pavo.scheduler.remoting.AbstractRemoting;
-import com.creditease.geb.pavo.scheduler.remoting.Channel;
-import com.creditease.geb.pavo.scheduler.remoting.RemotingCommand;
+import com.creditease.geb.pavo.scheduler.remoting.*;
 
 import java.net.SocketAddress;
+import java.util.concurrent.Future;
 
 public class SimpleChannel implements Channel {
 
     private boolean closed ;
 
-    private String addr;
+    private String localAddr;
+
+    private String remoteAddr;
 
 
-    public SimpleChannel(String addr) {
-        this.addr = addr;
+
+    public SimpleChannel(String addr,String remoteAddr) {
+        this.localAddr = addr;
+        this.remoteAddr = remoteAddr;
         this.closed = false;
     }
 
@@ -24,15 +27,31 @@ public class SimpleChannel implements Channel {
     }
 
     @Override
+    public String localAddr() {
+        return this.localAddr;
+    }
+
+    @Override
     public SocketAddress remoteAddress() {
         return null;
     }
 
     @Override
+    public String remoteAddr() {
+        return this.remoteAddr;
+    }
+
+    @Override
     public Object writeAndFlush(Object msg) {
         Channel pairChannel = SimpleChannelRouter.getPairChannel(this);
-        AbstractRemoting remoting =  SimpleChannelRouter.getServer(addr);
+        AbstractRemoting remoting =  SimpleChannelRouter.getRemoting(this.remoteAddr);
         return remoting.processMessageReceived(pairChannel, (RemotingCommand) msg);
+    }
+
+    @Override
+    public ChannelHandler asyncWriteAndFlush(Object msg) {
+        Future<RemotingCommand> future =  SimpleChannelRouter.writeRemoteMsg(this, msg);
+        return new SimpleChannelHandler(future);
     }
 
     @Override
