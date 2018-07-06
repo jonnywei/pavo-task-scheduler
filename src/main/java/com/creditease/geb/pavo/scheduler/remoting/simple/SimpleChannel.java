@@ -1,6 +1,7 @@
 package com.creditease.geb.pavo.scheduler.remoting.simple;
 
 import com.creditease.geb.pavo.scheduler.remoting.*;
+import com.creditease.geb.pavo.scheduler.remoting.mock.SimpleChannelRouter;
 
 import java.net.SocketAddress;
 import java.util.concurrent.Future;
@@ -50,7 +51,7 @@ public class SimpleChannel implements Channel {
 
     @Override
     public ChannelHandler asyncWriteAndFlush(Object msg) {
-        Future<RemotingCommand> future =  SimpleChannelRouter.writeRemoteMsg(this, msg);
+        Future<RemotingCommand> future  = null;//  SimpleChannelRouter.writeRemoteMsg(this, msg);
         return new SimpleChannelHandler(future);
     }
 

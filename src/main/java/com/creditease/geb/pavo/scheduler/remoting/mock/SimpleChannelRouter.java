@@ -1,4 +1,4 @@
-package com.creditease.geb.pavo.scheduler.remoting.simple;
+package com.creditease.geb.pavo.scheduler.remoting.mock;
 
 
 import com.creditease.geb.pavo.scheduler.remoting.AbstractRemoting;
@@ -17,7 +17,6 @@ public class SimpleChannelRouter {
     private static  ConcurrentHashMap<Channel,Channel> CHANNEL_TUNNEL = new ConcurrentHashMap<>();
 
 
-    private static ExecutorService MOCK_REMOTE_EXECUTOR = Executors.newFixedThreadPool(2);
 
     private SimpleChannelRouter(){}
 
@@ -50,21 +49,6 @@ public class SimpleChannelRouter {
         SERVERS.remove(addr);
     }
 
-
-    public static Future writeRemoteMsg(SimpleChannel channel, Object msg){
-        Future<RemotingCommand> future = MOCK_REMOTE_EXECUTOR.submit(new Callable<RemotingCommand>() {
-
-            @Override
-            public RemotingCommand call() throws Exception {
-                Thread.sleep(4000);
-                Channel pairChannel = SimpleChannelRouter.getPairChannel(channel);
-                AbstractRemoting remoting =  SimpleChannelRouter.getRemoting(channel.remoteAddr());
-                return remoting.processMessageReceived(pairChannel, (RemotingCommand) msg);
-            }
-        });
-        return future;
-
-    }
 
 
 

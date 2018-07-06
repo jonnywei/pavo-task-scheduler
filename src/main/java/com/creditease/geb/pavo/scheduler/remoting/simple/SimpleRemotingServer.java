@@ -1,6 +1,7 @@
 package com.creditease.geb.pavo.scheduler.remoting.simple;
 
 import com.creditease.geb.pavo.scheduler.remoting.*;
+import com.creditease.geb.pavo.scheduler.remoting.mock.SimpleChannelRouter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
