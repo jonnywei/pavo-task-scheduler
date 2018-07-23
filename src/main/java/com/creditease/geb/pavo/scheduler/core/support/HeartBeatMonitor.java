@@ -66,12 +66,17 @@ public class HeartBeatMonitor {
     }
 
     private boolean beat(String addr){
-        logger.debug(this.appContext.getNode().getId() +  " send ping to "+ addr);
-        RemotingCommand pingCommand =  RemotingCommand.createRequestCommand(RemotingCommand.RequestCode.PING.code());
-        RemotingCommand response = this.remotingClient.invokeSync(addr, pingCommand,5000);
-        logger.debug(this.appContext.getNode().getId() +  " receive "+ response.getCode() +" from to "+ addr);
+        try {
+            logger.debug(this.appContext.getNode().getId() +  " send ping to "+ addr);
+            RemotingCommand pingCommand =  RemotingCommand.createRequestCommand(RemotingCommand.RequestCode.PING.code());
+            RemotingCommand response = this.remotingClient.invokeSync(addr, pingCommand,10000);
+            logger.debug(this.appContext.getNode().getId() +  " receive "+ response.getCode() +" from to "+ addr);
+            return true;
+        }catch (Exception e){
+            logger.warn("beat error",e);
+        }
 
-        return true;
+        return false;
     }
 
 }

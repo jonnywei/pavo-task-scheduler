@@ -1,15 +1,19 @@
 package com.creditease.geb.pavo.scheduler.remoting.simple;
 
 import com.creditease.geb.pavo.scheduler.remoting.*;
-import com.creditease.geb.pavo.scheduler.remoting.mock.SimpleChannelRouter;
+import com.creditease.geb.pavo.scheduler.remoting.exception.RemotingException;
+import com.creditease.geb.pavo.scheduler.remoting.mock.IoClient;
+import com.creditease.geb.pavo.scheduler.remoting.mock.IoFuture;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 public class SimpleRemotingClient extends AbstractRemoting implements RemotingClient {
 
-    private ConcurrentHashMap<String, Channel> channelTables = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String /* addr */, Channel> channelTables = new ConcurrentHashMap<>();
 
+
+    private IoClient client;
 
     private String addr;
 
@@ -19,32 +23,33 @@ public class SimpleRemotingClient extends AbstractRemoting implements RemotingCl
 
     @Override
     public void start() {
-        SimpleChannelRouter.remotingStart(addr,this);
+        this.client = new IoClient(new SimpleEventHandler(this), this.addr);
     }
 
     @Override
-    public RemotingCommand invokeSync(String addr, RemotingCommand request, long timeMills) {
+    public RemotingCommand invokeSync(String addr, RemotingCommand request, long timeMills)
+            throws RemotingException, InterruptedException {
 
         final Channel channel = getAndCreateChannel(addr);
         if(channel != null && channel.isConnected()){
-            Object result = channel.writeAndFlush(request);
-            RemotingCommand response = (RemotingCommand)result;
-            return response;
+            return this.invokeSyncImpl(channel, request,timeMills);
         }
         return null;
 
     }
 
     @Override
-    public RemotingCommand invokeASync(String addr, RemotingCommand request, long timeoutMills, AsyncCallback callback) {
+    public void invokeAsync(String addr, RemotingCommand request, long timeoutMills, AsyncCallback callback)
+            throws RemotingException, InterruptedException {
         final Channel channel = getAndCreateChannel(addr);
         if(channel != null &&  channel.isConnected()){
             //abstract remoting impl
-            return this.invokeAsyncImpl(channel, request, timeoutMills, callback);
+              this.invokeAsyncImpl(channel, request, timeoutMills, callback);
         }else{
+            // close connection
 
         }
-        return null;
+
     }
 
     @Override
@@ -80,13 +85,8 @@ public class SimpleRemotingClient extends AbstractRemoting implements RemotingCl
 
     }
 
-    private Channel connect(String  addr){
-        SimpleChannel clientChannel = new SimpleChannel(this.addr, addr); //local remote
-        SimpleChannel severChannel  = new SimpleChannel(addr, this.addr); // remote local
-        SimpleChannelRouter.makeTunnel(clientChannel,severChannel);
-        SimpleChannelRouter.addRemoting(clientChannel, this);
-        AbstractRemoting serverRemoting = SimpleChannelRouter.getRemoting(addr);
-        SimpleChannelRouter.addRemoting(severChannel, serverRemoting);
-        return clientChannel;
+    private Channel connect(String   remoteAddress){
+        IoFuture connectFuture = this.client.connect(remoteAddress);
+        return new SimpleChannel( connectFuture.getChannel());
     }
 }

@@ -5,5 +5,5 @@ package com.creditease.geb.pavo.scheduler.remoting;
  */
 public interface RemotingProcessor {
 
-    RemotingCommand processRequest(RemotingCommand request);
+    RemotingCommand processRequest(Channel channel, RemotingCommand request);
 }

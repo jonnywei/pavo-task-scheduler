@@ -29,9 +29,10 @@ public class IoClientProcessor extends AbstractProcessor{
 
         IoChannelImpl ioChannel = new IoChannelImpl(socketChannel, this,eventHandler);
 
+        socketChannel.register(this.eventHandleLoop.selector(),ioChannel,SelectionKey.OP_CONNECT);
+
         socketChannel.connect(remoteAddress);
 
-        socketChannel.register(this.eventHandleLoop.selector(),ioChannel,SelectionKey.OP_CONNECT);
 
         ioFuture.setSuccess(true);
         ioFuture.setChannel(ioChannel);
@@ -43,5 +44,6 @@ public class IoClientProcessor extends AbstractProcessor{
     @Override
     public void connect(SelectionKey key) {
 
+        key.setInterestOps(new int[] {SelectionKey.OP_READ});
     }
 }

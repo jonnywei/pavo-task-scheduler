@@ -9,6 +9,8 @@ import com.creditease.geb.pavo.scheduler.remoting.mock.nio.SelectionKey;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.*;
 
@@ -18,7 +20,7 @@ import java.util.concurrent.*;
 public  abstract  class AbstractProcessor implements IoProcessor {
 
 
-    private  ExecutorService MOCK_REMOTE_EXECUTOR = Executors.newFixedThreadPool(2);
+    private  ExecutorService MOCK_REMOTE_EXECUTOR = Executors.newFixedThreadPool(10);
 
     //任务处理器
     protected IoHandler eventHandler;
@@ -29,7 +31,6 @@ public  abstract  class AbstractProcessor implements IoProcessor {
     //写缓存Queue，每个processor一个
     private  ConcurrentMap<IoChannel, Queue<WriteRequest>> QUEUE_MAP = new ConcurrentHashMap<>();
 
-    private  BlockingQueue<RemotingCommand> RECEIVE_QUEUE = new LinkedBlockingQueue<>();
 
     /**
      *
@@ -43,7 +44,7 @@ public  abstract  class AbstractProcessor implements IoProcessor {
     }
 
     public  void start(){
-
+        this.eventHandleLoop.start();
     }
 
     //客户端连接
@@ -69,9 +70,7 @@ public  abstract  class AbstractProcessor implements IoProcessor {
         WriteRequest writeRequest = new WriteRequest(ioFuture, msg);
         Queue queue = QUEUE_MAP.get(channel);
         queue.add(writeRequest);
-
         flush(channel);
-
         return ioFuture;
     }
 
@@ -82,13 +81,19 @@ public  abstract  class AbstractProcessor implements IoProcessor {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(4000);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 Queue<WriteRequest> q = QUEUE_MAP.get(channel);
                 while(!q.isEmpty()){
-                    WriteRequest wr = q.peek();
+                    WriteRequest wr = q.poll();
+                    try {
+                        channel.socketChannel().write((RemotingCommand)wr.getCommand());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                     IoFuture ioFuture = wr.getFuture();
                     ioFuture.notifyListeners();
                 }
@@ -100,22 +105,22 @@ public  abstract  class AbstractProcessor implements IoProcessor {
     @Override
     public void read(IoChannel channel) {
 
-        ByteBuffer buffer = ByteBuffer.allocate(64 * 1024);
+        List<RemotingCommand> result = new ArrayList<>();
         try {
-            //模拟的不需要，只是空方法而已
-            channel.socketChannel().read(buffer);
-            doMessageReceived(channel,buffer);
 
+            result =  channel.socketChannel().read(channel);
+            for(RemotingCommand obj : result){
+                eventHandler.messageReceived(channel,obj);
+
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private void doMessageReceived( final  IoChannel channel,final ByteBuffer readBuffer){
-        RemotingCommand remotingCommand;
-        while ((remotingCommand = RECEIVE_QUEUE.poll())!= null){
-            eventHandler.messageReceived(channel,remotingCommand);
-        }
+
+
     }
 
     protected abstract IoChannel doAccept(SelectionKey selectionKey);

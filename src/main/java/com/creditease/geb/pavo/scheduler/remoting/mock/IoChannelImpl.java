@@ -40,7 +40,7 @@ public class IoChannelImpl implements IoChannel {
 
     @Override
     public boolean isConnected() {
-        return false;
+        return true;
     }
 
     @Override
@@ -51,5 +51,10 @@ public class IoChannelImpl implements IoChannel {
     @Override
     public boolean isClosed() {
         return false;
+    }
+
+    @Override
+    public IoFuture close() {
+        return null;
     }
 }

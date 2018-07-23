@@ -24,12 +24,12 @@ public class MockSelector extends Selector {
 
     @Override
     public Set<SelectionKey> selectedKeys() {
-        return Collections.unmodifiableSet(selectedKeys);
+        return selectedKeys;
     }
 
     @Override
     public int selectNow() {
-     return select(0);
+     return select(5000);
     }
 
     @Override
@@ -65,6 +65,14 @@ public class MockSelector extends Selector {
 
     private int doSelect(){
         for(SelectionKey key :keys){
+            for(int i=0; i < key.readyOps().length; i++){
+                if(key.readyOps()[i] == 1){
+                    if(key.interestOps()[i] ==1){
+                        selectedKeys.add(key);
+                      //  key.readyOps()[i] =0; //复位
+                    }
+                }
+            }
             //interest ops 和 readyops重叠
             //add to selectedKeys
         }

@@ -27,5 +27,6 @@ public interface IoChannel {
 
     boolean isClosed();
 
+    IoFuture close();
 
 }

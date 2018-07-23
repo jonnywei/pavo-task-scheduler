@@ -6,15 +6,17 @@ public class IoServer {
 
     private IoServerProcessor processor;
 
-    private String addr;
-
-    public IoServer(IoServerProcessor processor, String addr) {
-        this.processor = processor;
-        this.addr = addr;
+    public IoServer(IoHandler eventHandler, String addr) {
+        this.processor = new IoServerProcessor(eventHandler, addr);
     }
 
     public void bind(String localAddress){
-        this.processor.start();
+        this.processor.start(); //启动
+        this.processor.register(); //注册
         this.processor.bind(localAddress);
+    }
+
+    public void shutdown(){
+
     }
 }

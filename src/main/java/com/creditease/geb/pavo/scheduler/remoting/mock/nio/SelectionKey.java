@@ -10,7 +10,7 @@ public class SelectionKey {
 
     private volatile Object attachment = null;
 
-    private  int[] readyOps =new int[4];
+    private  volatile int[] readyOps =new int[4];
 
     private  volatile int[] interestOps = new int[4];
 
@@ -44,6 +44,26 @@ public class SelectionKey {
     }
 
 
+
+    public final void resetReadable(){
+         readyOps[OP_READ] = 0;
+    }
+
+
+    public final void resetAcceptable(){
+         readyOps[OP_ACCEPT]  = 0;
+    }
+
+
+    public final void resetConnectable(){
+         readyOps[OP_CONNECT] = 0;
+    }
+
+    public final void resetWritable(){
+         readyOps[OP_WRITE] = 0;
+    }
+
+
     /**
      * Retrieves the current attachment.
      *
@@ -62,9 +82,9 @@ public class SelectionKey {
 
 
     public void setReadyOps(int[] readyOps) {
-        for(int i =0; i < 4; i++){ //复位
-            this.readyOps[i] = 0;
-        }
+//        for(int i =0; i < 4; i++){ //复位
+//            this.readyOps[i] = 0;
+//        }
         for(int i : readyOps){
             this.readyOps[i] = 1;
         }
@@ -92,5 +112,15 @@ public class SelectionKey {
 
     public void cancel(){
       selector().cancel(this);
+    }
+
+
+
+    protected int[] readyOps(){
+        return this.readyOps;
+    }
+
+    protected int[] interestOps(){
+        return  this.interestOps;
     }
 }

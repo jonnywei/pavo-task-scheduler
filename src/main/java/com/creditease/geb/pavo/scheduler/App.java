@@ -12,9 +12,9 @@ public class App
     public static void main( String[] args ) throws InterruptedException {
 
         TrackerBootstrap.main(null);
-        TrackerBootstrap.main(null);
-        ExecutorBootstrap.main(null);
-        ExecutorBootstrap.main(null);
+//        TrackerBootstrap.main(null);
+//        ExecutorBootstrap.main(null);
+//        ExecutorBootstrap.main(null);
         ExecutorBootstrap.main(null);
 
         System.out.println("over");

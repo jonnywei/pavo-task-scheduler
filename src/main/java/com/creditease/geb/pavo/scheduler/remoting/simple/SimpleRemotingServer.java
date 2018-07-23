@@ -1,7 +1,7 @@
 package com.creditease.geb.pavo.scheduler.remoting.simple;
 
 import com.creditease.geb.pavo.scheduler.remoting.*;
-import com.creditease.geb.pavo.scheduler.remoting.mock.SimpleChannelRouter;
+import com.creditease.geb.pavo.scheduler.remoting.mock.IoServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +11,7 @@ public class SimpleRemotingServer extends AbstractRemoting implements RemotingSe
 
     private Logger logger = LoggerFactory.getLogger(SimpleRemotingServer.class);
     private String addr;
+    private IoServer server;
 
     public SimpleRemotingServer(String addr) {
 
@@ -19,12 +20,13 @@ public class SimpleRemotingServer extends AbstractRemoting implements RemotingSe
 
     @Override
     public void start() {
+        this.server = new IoServer(new SimpleEventHandler(this),this.addr);
         logger.debug("remoting server start. addr ={}" ,addr );
-        SimpleChannelRouter.remotingStart(addr,this);
+        server.bind(this.addr);
     }
 
     @Override
-    public RemotingCommand invokeSync(RemotingCommand request, long timeoutMillis) {
+    public RemotingCommand invokeSync(final Channel channel, RemotingCommand request, long timeoutMillis) {
         return null;
     }
 
@@ -35,7 +37,7 @@ public class SimpleRemotingServer extends AbstractRemoting implements RemotingSe
 
     @Override
     public void shutdown() {
-        SimpleChannelRouter.remotingShutdown(this.addr);
+        this.server.shutdown();
 
     }
 

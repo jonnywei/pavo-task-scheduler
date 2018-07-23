@@ -23,6 +23,7 @@ public class RemotingCommand implements Serializable {
 
     private int id;
 
+    private int opaque;
 
     private RemotingCommand(){
 
@@ -115,5 +116,21 @@ public class RemotingCommand implements Serializable {
         this.id = id;
     }
 
+    public int getOpaque() {
+        return opaque;
+    }
 
+    public void setOpaque(int opaque) {
+        this.opaque = opaque;
+    }
+
+    @Override
+    public String toString() {
+        return "RemotingCommand{" +
+                "code=" + code +
+                ", type=" + type +
+                ", id=" + id +
+                ", opaque=" + opaque +
+                '}';
+    }
 }

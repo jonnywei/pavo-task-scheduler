@@ -44,4 +44,9 @@ public class IoServerProcessor extends AbstractProcessor {
     public void connect(SelectionKey key) {
             throw  new UnsupportedOperationException();
     }
+
+
+    public void register(){
+        this.serverSocketChannel.register(eventHandleLoop.selector(),null,SelectionKey.OP_ACCEPT);
+    }
 }

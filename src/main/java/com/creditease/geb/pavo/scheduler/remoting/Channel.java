@@ -15,9 +15,7 @@ public interface Channel {
 
     String remoteAddr();
 
-    Object writeAndFlush(Object msg);
-
-    ChannelHandler asyncWriteAndFlush(Object msg);
+    ChannelHandler writeAndFlush(Object msg);
 
     void close();
 

@@ -61,6 +61,11 @@ public abstract class AbstractNode implements Node {
     @Override
     public void stop() {
 
+        beforeRemotingStop();
+
+        remotingStop();
+
+        afterRemotingStop();
     }
 
     @Override

@@ -1,7 +1,9 @@
 package com.creditease.geb.pavo.scheduler.remoting.mock.nio;
 
+import com.creditease.geb.pavo.scheduler.remoting.RemotingCommand;
+
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.util.List;
 
 public abstract class SelectableChannel {
 
@@ -12,9 +14,16 @@ public abstract class SelectableChannel {
 
 
     public  SelectionKey register(Selector selector, Object att, int... ops){
-        SelectionKey selectionKey = selector.register(this,att,ops);
-        this.selectionKey = selectionKey;
-        return selectionKey;
+
+        if(this.selectionKey != null){
+            this.selectionKey.setInterestOps(ops);
+            this.selectionKey.attach(att);
+        }
+        if(this.selectionKey == null){
+            SelectionKey selectionKey = selector.register(this,att,ops);
+            this.selectionKey = selectionKey;
+        }
+        return this.selectionKey;
     }
 
 
@@ -32,14 +41,21 @@ public abstract class SelectableChannel {
      * @return
      * @throws IOException
      */
-    public int read(ByteBuffer dst) throws IOException {
-        return 0;
+    public List<RemotingCommand> read(Object dst) throws IOException {
+        return MockSocketChannelRouter.read(this);
     }
 
 
-    public int write(ByteBuffer src) throws IOException{
-        return 0;
+    public int write(RemotingCommand src) throws IOException{
+        return MockSocketChannelRouter.write(this, src);
     }
 
+    /**
+     * 返回注册的key
+     * @return
+     */
+    public SelectionKey keyFor(){
+        return this.selectionKey;
+    }
 
 }

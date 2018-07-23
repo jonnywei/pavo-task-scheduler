@@ -5,6 +5,7 @@ import com.creditease.geb.pavo.scheduler.remoting.mock.nio.MockSelector;
 import com.creditease.geb.pavo.scheduler.remoting.mock.nio.SelectionKey;
 import com.creditease.geb.pavo.scheduler.remoting.mock.nio.Selector;
 
+import java.util.Iterator;
 import java.util.Set;
 
 public class EventHandlerLoop extends Thread{
@@ -24,18 +25,25 @@ public class EventHandlerLoop extends Thread{
                 try {
                     selector.selectNow();
                     Set<SelectionKey> selectionKeys = selector.selectedKeys();
-                    
-                    for(SelectionKey key : selectionKeys){
+                    Iterator<SelectionKey> iterator = selectionKeys.iterator();
+                    while (iterator.hasNext()){
+                        SelectionKey key = iterator.next();
+                        iterator.remove();
+
                         if(key.isAcceptable()){
+                            key.resetAcceptable();
                             doAccept(key);
                         }
                         if(key.isConnectable()){
+                            key.resetConnectable();
                             doConnect(key);
                         }
                         if(key.isReadable()){
+                            key.resetReadable();
                             doRead(key);
                         }
                         if(key.isWritable()){
+                            key.resetWritable();
                             doWrite(key);
                         }
                     }
