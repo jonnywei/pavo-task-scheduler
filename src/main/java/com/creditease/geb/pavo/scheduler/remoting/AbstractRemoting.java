@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 public abstract class AbstractRemoting {
 
@@ -47,10 +48,15 @@ public abstract class AbstractRemoting {
             responseFuture.putResponse(cmd);
             //异步调用
             if(responseFuture.getAsyncCallback() != null){
-
-                responseFuture.getAsyncCallback().operationComplete();
+                ExecutorService callbackExecutor = getCallbackExecutor();
+                if(callbackExecutor != null){
+                    callbackExecutor.submit(()->{
+                        responseFuture.executeInvokeCallback();
+                    });
+                }else {
+                    responseFuture.executeInvokeCallback();
+                }
             }
-
         }else {
             logger.warn("receive response, but not matched any request");
         }
@@ -67,9 +73,15 @@ public abstract class AbstractRemoting {
         channel.writeAndFlush(request).addListener(future -> {
             if(future.isSuccess()){
                 responseFuture.setSendSuccess(true);
+                return;
             }else {
                 responseFuture.setSendSuccess(false);
             }
+            responseFuture.putResponse(null);
+            responseFuture.setCause(future.cause());
+            responseFuture.executeInvokeCallback();
+            responseTables.remove(request.getId());
+            logger.warn("send request command to channel error" +channel);
         });
 
 
@@ -88,9 +100,15 @@ public abstract class AbstractRemoting {
             channel.writeAndFlush(request).addListener(future -> {
                 if(future.isSuccess()){
                     responseFuture.setSendSuccess(true);
+                    return;
                 }else {
                     responseFuture.setSendSuccess(false);
                 }
+                this.responseTables.remove(request.getId());
+                responseFuture.setCause(future.cause());
+                responseFuture.putResponse(null);
+                logger.warn("send request command to channel error" +channel);
+
             });
 
             RemotingCommand responseCommand = responseFuture.waitResponse(timeoutMills);
@@ -104,4 +122,7 @@ public abstract class AbstractRemoting {
         }
 
     }
+
+    protected abstract ExecutorService getCallbackExecutor();
+
 }

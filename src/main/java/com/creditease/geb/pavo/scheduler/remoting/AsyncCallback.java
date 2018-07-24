@@ -5,5 +5,5 @@ package com.creditease.geb.pavo.scheduler.remoting;
  */
 public interface AsyncCallback {
 
-    void operationComplete();
+    void operationComplete(ResponseFuture responseFuture);
 }

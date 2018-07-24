@@ -100,4 +100,9 @@ public class SimpleRemotingClient extends AbstractRemoting implements RemotingCl
         }
         channel.close();
     }
+
+    @Override
+    protected ExecutorService getCallbackExecutor() {
+        return null;
+    }
 }

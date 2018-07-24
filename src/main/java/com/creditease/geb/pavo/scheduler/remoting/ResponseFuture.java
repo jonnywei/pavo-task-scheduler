@@ -79,4 +79,10 @@ public class ResponseFuture {
         return this.responseCommand;
     }
 
+    //执行异步调用
+    public void executeInvokeCallback(){
+        if(this.asyncCallback != null){
+            asyncCallback.operationComplete(this);
+        }
+    }
 }
