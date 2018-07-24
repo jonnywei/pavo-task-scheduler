@@ -107,6 +107,7 @@ public  abstract  class AbstractProcessor implements IoProcessor {
                 }
 
                 IoFuture ioFuture = wr.getFuture();
+                ioFuture.setSuccess(true);
                 ioFuture.notifyListeners();
             }
         });
