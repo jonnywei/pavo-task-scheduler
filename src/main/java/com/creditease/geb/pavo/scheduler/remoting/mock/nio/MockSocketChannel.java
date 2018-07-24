@@ -1,5 +1,9 @@
 package com.creditease.geb.pavo.scheduler.remoting.mock.nio;
 
+import com.creditease.geb.pavo.scheduler.remoting.mock.IoFuture;
+
+import java.io.IOException;
+
 public class MockSocketChannel extends SelectableChannel {
 
     private String remoteAddress;
@@ -22,5 +26,9 @@ public class MockSocketChannel extends SelectableChannel {
         MockSocketChannelRouter.addClientSocketChannel(serverSocketChannel, this);
     }
 
-
+    public void connect(String remoteAddress, IoFuture ioFuture){
+        this.remoteAddress = remoteAddress;
+        MockServerSocketChannel serverSocketChannel = MockSocketChannelRouter.getServerSocketChannel(remoteAddress);
+        MockSocketChannelRouter.addClientSocketChannel(serverSocketChannel, this,ioFuture);
+    }
 }

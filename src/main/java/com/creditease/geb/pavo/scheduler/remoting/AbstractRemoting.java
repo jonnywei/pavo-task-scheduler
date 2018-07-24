@@ -81,22 +81,27 @@ public abstract class AbstractRemoting {
     public RemotingCommand invokeSyncImpl(final Channel channel, RemotingCommand request, final long timeoutMills)
             throws InterruptedException ,RemotingException  {
 
-        ResponseFuture responseFuture = new ResponseFuture(request.getId(), timeoutMills,null);
-        this.responseTables.put(request.getId(), responseFuture);
+        try{
+            ResponseFuture responseFuture = new ResponseFuture(request.getId(), timeoutMills,null);
+            this.responseTables.put(request.getId(), responseFuture);
 
-        channel.writeAndFlush(request).addListener(future -> {
-            if(future.isSuccess()){
-                responseFuture.setSendSuccess(true);
-            }else {
-                responseFuture.setSendSuccess(false);
+            channel.writeAndFlush(request).addListener(future -> {
+                if(future.isSuccess()){
+                    responseFuture.setSendSuccess(true);
+                }else {
+                    responseFuture.setSendSuccess(false);
+                }
+            });
+
+            RemotingCommand responseCommand = responseFuture.waitResponse(timeoutMills);
+
+            if(responseCommand == null){
+                throw new RemotingException("error", responseFuture.getCause());
             }
-        });
-
-        RemotingCommand responseCommand = responseFuture.waitResponse(timeoutMills);
-
-        if(responseCommand == null){
-            throw new RemotingException("error", responseFuture.getCause());
+            return responseCommand;
+        }finally {
+            this.responseTables.remove(request.getId());
         }
-        return responseCommand;
+
     }
 }

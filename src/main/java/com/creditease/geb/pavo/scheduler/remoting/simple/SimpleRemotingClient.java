@@ -33,8 +33,10 @@ public class SimpleRemotingClient extends AbstractRemoting implements RemotingCl
         final Channel channel = getAndCreateChannel(addr);
         if(channel != null && channel.isConnected()){
             return this.invokeSyncImpl(channel, request,timeMills);
+        }else {
+            this.closeChannel(addr,channel);
+            throw new RemotingException("connect error");
         }
-        return null;
 
     }
 
@@ -45,9 +47,9 @@ public class SimpleRemotingClient extends AbstractRemoting implements RemotingCl
         if(channel != null &&  channel.isConnected()){
             //abstract remoting impl
               this.invokeAsyncImpl(channel, request, timeoutMills, callback);
-        }else{
-            // close connection
-
+        }else {
+            this.closeChannel(addr,channel);
+            throw new RemotingException("connect error");
         }
 
     }
@@ -78,15 +80,24 @@ public class SimpleRemotingClient extends AbstractRemoting implements RemotingCl
 //        String[] s = addr.split(":");
 //        SocketAddress socketAddress = new InetSocketAddress(s[0], Integer.valueOf(s[1]));
 
-        channel =connect(addr);
+        ChannelFuture channelFuture =connect(addr);
+        channelFuture.awaitUninterruptibly(5000);
 
+        channel = channelFuture.getChannel();
         channelTables.put(addr, channel);
         return channel;
 
     }
 
-    private Channel connect(String   remoteAddress){
+    private ChannelFuture connect(String   remoteAddress){
         IoFuture connectFuture = this.client.connect(remoteAddress);
-        return new SimpleChannel( connectFuture.getChannel());
+        return new SimpleChannelFuture( connectFuture);
+    }
+
+    private void closeChannel(String addr, Channel channel){
+        if(channel ==null){
+            return;
+        }
+        channel.close();
     }
 }

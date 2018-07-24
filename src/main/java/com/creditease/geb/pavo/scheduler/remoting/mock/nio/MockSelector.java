@@ -29,7 +29,7 @@ public class MockSelector extends Selector {
 
     @Override
     public int selectNow() {
-     return select(5000);
+     return select(500);
     }
 
     @Override

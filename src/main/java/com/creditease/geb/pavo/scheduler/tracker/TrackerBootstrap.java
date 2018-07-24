@@ -18,7 +18,7 @@ public class TrackerBootstrap {
                 tracker.stop();
             }
         }));
-        System.out.println("exist");
+        System.out.println("tracker start");
 
     }
 }

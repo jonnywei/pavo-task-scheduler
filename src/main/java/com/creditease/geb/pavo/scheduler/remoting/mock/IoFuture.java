@@ -10,6 +10,8 @@ import java.util.concurrent.TimeoutException;
 
 public class IoFuture implements Future {
 
+    private static final long DEAD_LOCK_CHECK_INTERVAL = 5000L;
+
     private boolean done = false;
 
     private boolean success = false;
@@ -20,8 +22,15 @@ public class IoFuture implements Future {
 
     private IoChannelImpl channel;
 
+    private  final  Object lock = this;
+
     public void addListener(IoFutureListener listener){
-        this.listeners.add(listener);
+        synchronized (lock){
+            this.listeners.add(listener);
+            if(isDone()){
+                listener.operationComplete(this);
+            }
+        }
     }
 
 
@@ -31,8 +40,12 @@ public class IoFuture implements Future {
 
 
     public   void notifyListeners(){
-        for(IoFutureListener listener : listeners){
-            listener.operationComplete(this);
+
+        synchronized (lock){
+            this.done = true;
+            for(IoFutureListener listener : listeners){
+                listener.operationComplete(this);
+            }
         }
     }
 
@@ -48,13 +61,6 @@ public class IoFuture implements Future {
         return done;
     }
 
-    public Object get() throws InterruptedException, ExecutionException {
-        return null;
-    }
-
-    public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return null;
-    }
 
     @Override
     public boolean isSuccess() {
@@ -74,4 +80,72 @@ public class IoFuture implements Future {
     public void setChannel(IoChannelImpl channel) {
         this.channel = channel;
     }
+
+
+    public boolean awaitUninterruptibly(long timeoutMillis){
+        try {
+            return await0(timeoutMillis,false);
+        } catch (InterruptedException e) {
+            throw new RuntimeException();
+        }
+    }
+
+
+    private boolean await0 (long timeoutMills, boolean interruptable) throws InterruptedException{
+        if(isDone()){
+            return  true;
+        }
+        if(timeoutMills <= 0 ){
+            return isDone();
+        }
+
+        if(interruptable && Thread.interrupted()){
+            throw new InterruptedException(toString());
+        }
+
+        long endTime = System.currentTimeMillis() +timeoutMills;
+
+        boolean interrupted = false;
+
+        synchronized (lock){
+
+            if(isDone()){
+                return true;
+            }
+
+            if(timeoutMills <= 0 ){
+                return isDone();
+            }
+            try{
+                for(;;){
+
+                    long timeOut = Math.min(timeoutMills,DEAD_LOCK_CHECK_INTERVAL);
+                    try{
+                        lock.wait(timeOut);
+                    }catch (InterruptedException e){
+                        if(interruptable){
+                            throw e;
+                        } else {
+                            interrupted  = true;
+                        }
+                    }
+                    if(isDone()){
+                        return true;
+                    }
+                    if(endTime < System.currentTimeMillis()){
+                        return isDone();
+                    }
+
+
+                }
+            }finally {
+                if(interrupted){
+                    Thread.currentThread().interrupt();
+                }
+            }
+
+        }
+
+    }
+
 }

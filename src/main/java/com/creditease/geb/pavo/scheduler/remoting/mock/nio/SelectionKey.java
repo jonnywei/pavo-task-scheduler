@@ -82,9 +82,7 @@ public class SelectionKey {
 
 
     public void setReadyOps(int[] readyOps) {
-//        for(int i =0; i < 4; i++){ //复位
-//            this.readyOps[i] = 0;
-//        }
+
         for(int i : readyOps){
             this.readyOps[i] = 1;
         }
@@ -92,9 +90,7 @@ public class SelectionKey {
 
 
     public void setInterestOps(int[] interestOps) {
-        for(int i =0; i < 4; i++){ //复位
-            this.interestOps[i] = 0;
-        }
+
         for(int i : interestOps){
             this.interestOps[i] = 1;
         }

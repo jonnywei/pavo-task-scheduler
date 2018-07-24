@@ -58,4 +58,7 @@ public abstract class SelectableChannel {
         return this.selectionKey;
     }
 
+    public   boolean finishConnect() throws IOException{
+        return true;
+    }
 }

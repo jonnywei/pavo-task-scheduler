@@ -5,6 +5,7 @@ import com.creditease.geb.pavo.scheduler.core.NodeInfo;
 import com.creditease.geb.pavo.scheduler.core.NodeType;
 import com.creditease.geb.pavo.scheduler.remoting.RemotingClient;
 import com.creditease.geb.pavo.scheduler.remoting.RemotingCommand;
+import com.creditease.geb.pavo.scheduler.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,7 @@ public class HeartBeatMonitor {
 
     private RemotingClient remotingClient;
 
-    private ScheduledExecutorService PING_EXECUTOR = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService PING_EXECUTOR = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("HeartBeat",true));
 
     public HeartBeatMonitor(AppContext appContext, RemotingClient remotingClient) {
         this.appContext = appContext;

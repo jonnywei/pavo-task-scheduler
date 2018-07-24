@@ -2,6 +2,7 @@ package com.creditease.geb.pavo.scheduler.remoting.mock.nio;
 
 
 import com.creditease.geb.pavo.scheduler.remoting.RemotingCommand;
+import com.creditease.geb.pavo.scheduler.remoting.mock.IoFuture;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -17,6 +18,8 @@ public class MockSocketChannelRouter {
 
     private static  ConcurrentHashMap<MockSocketChannel,MockSocketChannel> CHANNEL_TUNNEL = new ConcurrentHashMap<>();
 
+    private static  ConcurrentHashMap<MockSocketChannel,IoFuture> CLEINT_FUTURE = new ConcurrentHashMap<>();
+
     private static ConcurrentHashMap<MockSocketChannel, BlockingQueue<RemotingCommand>> RECEIVE_QUEUE_MAP = new ConcurrentHashMap<>();
 
     private MockSocketChannelRouter(){}
@@ -27,6 +30,22 @@ public class MockSocketChannelRouter {
         RECEIVE_QUEUE_MAP.put(client,new LinkedBlockingQueue<RemotingCommand>());
         RECEIVE_QUEUE_MAP.put(server,new LinkedBlockingQueue<RemotingCommand>());
         client.keyFor().setReadyOps(new int[]{SelectionKey.OP_CONNECT});
+        if(CLEINT_FUTURE.containsKey(client) ){
+            CLEINT_FUTURE.get(client).notifyListeners();
+        }
+    }
+
+
+    public static void addClientSocketChannel(MockServerSocketChannel serverSocketChannel, MockSocketChannel clientSocketChannel
+            , IoFuture ioFuture){
+        Set<MockSocketChannel> set = CLIENT_SOCKET_CHANNEL.get(serverSocketChannel);
+        if(set == null){
+            set = new HashSet<>();
+            CLIENT_SOCKET_CHANNEL.put(serverSocketChannel,set);
+        }
+        serverSocketChannel.keyFor().setReadyOps(new int[]{SelectionKey.OP_ACCEPT});
+        set.add(clientSocketChannel);
+        CLEINT_FUTURE.put(clientSocketChannel,ioFuture);
     }
 
     public static void addClientSocketChannel(MockServerSocketChannel serverSocketChannel, MockSocketChannel clientSocketChannel){
@@ -36,7 +55,6 @@ public class MockSocketChannelRouter {
             CLIENT_SOCKET_CHANNEL.put(serverSocketChannel,set);
         }
         serverSocketChannel.keyFor().setReadyOps(new int[]{SelectionKey.OP_ACCEPT});
-        clientSocketChannel.keyFor().setReadyOps(new int[]{SelectionKey.OP_CONNECT});
         set.add(clientSocketChannel);
     }
 
@@ -68,8 +86,9 @@ public class MockSocketChannelRouter {
     public static int write(SelectableChannel socketChannel, RemotingCommand msg){
 
         MockSocketChannel pairChannel =   CHANNEL_TUNNEL.get(socketChannel);
-        pairChannel.keyFor().setReadyOps(new int[]{SelectionKey.OP_READ});
         RECEIVE_QUEUE_MAP.get(pairChannel).add(msg);
+        pairChannel.keyFor().setReadyOps(new int[]{SelectionKey.OP_READ});
+
         return 1;
 
     }

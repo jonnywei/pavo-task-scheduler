@@ -7,6 +7,8 @@ import com.creditease.geb.pavo.scheduler.remoting.mock.IoHandler;
 import com.creditease.geb.pavo.scheduler.remoting.mock.nio.MockSocketChannel;
 import com.creditease.geb.pavo.scheduler.remoting.mock.nio.SelectionKey;
 
+import java.io.IOException;
+
 public class IoClientProcessor extends AbstractProcessor{
 
 
@@ -31,19 +33,24 @@ public class IoClientProcessor extends AbstractProcessor{
 
         socketChannel.register(this.eventHandleLoop.selector(),ioChannel,SelectionKey.OP_CONNECT);
 
-        socketChannel.connect(remoteAddress);
+        socketChannel.connect(remoteAddress,ioFuture);
 
 
         ioFuture.setSuccess(true);
         ioFuture.setChannel(ioChannel);
-        ioFuture.notifyListeners();
+//        ioFuture.notifyListeners();
         return ioChannel;
     }
 
 
     @Override
     public void connect(SelectionKey key) {
-
+        IoChannel channel = (IoChannel) key.attachment();
+        try {
+            channel.socketChannel().finishConnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         key.setInterestOps(new int[] {SelectionKey.OP_READ});
     }
 }
